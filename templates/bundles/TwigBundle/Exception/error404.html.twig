@@ -1,0 +1,15 @@
+{# templates/bundles/TwigBundle/Exception/error404.html.twig #}
+{% block stylesheets %}{{ encore_entry_link_tags('app') }}
+{% endblock %}
+
+{% block body %}
+    <div id="error">
+        <div class="error">
+            <div class="error-page">
+                <h1>404</h1>
+                <h2>Page not found</h2>
+            </div>
+            <a href="{{ path('course_index') }}">Homepage</a>
+        </div>
+    </div>
+{% endblock %}

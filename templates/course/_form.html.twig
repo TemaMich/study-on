@@ -1,4 +1,15 @@
 {{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+<div class="form-floating mb-3">
+    {{ form_row(form.name, {'attr': {'class': 'form-control'}})}}
+</div>
+<div class="form-floating mb-3">
+    {{ form_row(form.description, {'attr': {'class': 'form-control'}})}}
+</div>
+<div class="form-floating mb-3">
+    {{ form_row(form.code, {'attr': {'class': 'form-control'}})}}
+</div>
+<div class="flex-row d-flex">
+<a href="{{ path('course_index') }}" class="btn btn-outline-primary">Back to list</a>
+<button class="btn btn-outline-primary ms-2">{{ button_label|default('Save') }}</button>
+</div>
 {{ form_end(form) }}

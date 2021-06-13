@@ -1,11 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Lesson{% endblock %}
-
 {% block body %}
-    <h1>Create new Lesson</h1>
+<main class="container mt-5">
+    <h1>Создать новый урок</h1>
 
     {{ include('lesson/_form.html.twig') }}
-
-    <a href="{{ path('lesson_index') }}">back to list</a>
+</main>
 {% endblock %}

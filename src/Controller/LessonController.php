@@ -27,21 +27,21 @@ class LessonController extends AbstractController
     }
 
     /**
-     * @Route("/new/{slug}", name="lesson_new", methods={"GET","POST"})
+     * @Route("/new/{id}", name="lesson_new", methods={"GET","POST"})
      */
-    public function new(Course $slug, Request $request): Response
+    public function new(Course $course, Request $request): Response
     {
         $lesson = new Lesson();
         $form = $this->createForm(LessonType::class, $lesson);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $lesson->setCourse($slug);
+            $lesson->setCourse($course);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($lesson);
             $entityManager->flush();
 
-            return $this->redirectToRoute('course_show', ['id' => $slug->getId()]);
+            return $this->redirectToRoute('course_show', ['id' => $course->getId()]);
         }
 
         return $this->render('lesson/new.html.twig', [

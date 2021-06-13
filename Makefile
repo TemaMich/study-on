@@ -20,3 +20,12 @@ migrate:
 
 fixtload:
 	@${CONSOLE} doctrine:fixtures:load
+
+require:
+	@${COMPOSER} require
+
+encore_dev:
+	@${COMPOSE} run node yarn encore dev
+
+encore_prod:
+	@${COMPOSE} run node yarn encore production
