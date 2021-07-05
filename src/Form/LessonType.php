@@ -4,11 +4,11 @@ namespace App\Form;
 
 use App\Entity\Lesson;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Validator\Constraints\Length;
 
 class LessonType extends AbstractType
 {
@@ -16,13 +16,26 @@ class LessonType extends AbstractType
     {
         $builder
             ->add('name', TextType::class, [
-                'attr' => ['placeholder' => "Header"]
+                'label' => "Название урока",
+                "constraints"   =>  [
+                    new Length([
+                        'min'   => 5,
+                        'minMessage' => 'Название должно быть больше {{ limit }} символов',
+                        'max' => 1000,
+                    ])
+                ]
             ])
-            ->add('content', TextareaType::class, [
-                'attr' => ['placeholder' => "Content"]
+            ->add('content', TextType::class, [
+                'label' => "Контент урока",
+                "constraints"   =>  [
+                    new Length([
+                        'min'   => 10,
+                        'minMessage' => 'Конотент должен быть больше {{ limit }} символов',
+                    ])
+                ]
             ])
             ->add('number', IntegerType::class, [
-                'attr' => ['placeholder' => "Number"]
+                'label' => 'Номер урока'
             ])
         ;
     }

@@ -69,7 +69,7 @@ class CourseController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('course_index');
+            return $this->redirectToRoute('course_show', ['id' => $course->getId()]);
         }
 
         return $this->render('course/edit.html.twig', [
@@ -79,7 +79,7 @@ class CourseController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="course_delete", methods={"POST"})
+     * @Route("/delete/{id}", name="course_delete", methods={"POST"})
      */
     public function delete(Request $request, Course $course): Response
     {
