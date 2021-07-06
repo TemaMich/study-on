@@ -30,7 +30,7 @@ class LessonType extends AbstractType
                 "constraints"   =>  [
                     new Length([
                         'min'   => 10,
-                        'minMessage' => 'Конотент должен быть больше {{ limit }} символов',
+                        'minMessage' => 'Контент должен быть больше {{ limit }} символов',
                     ])
                 ]
             ])

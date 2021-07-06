@@ -19,7 +19,7 @@ class CourseType extends AbstractType
                 'attr' => ['placeholder' => "Code"],
                 'constraints' =>	[
                     new Length([
-                        'min' => 3,
+                        'min' => 2,
                         'minMessage' => 'Код должен быть больше {{ limit }} символов',
                     ])
                 ],

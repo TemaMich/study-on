@@ -67,16 +67,18 @@ class CourseTest extends AbstractTest
         //$client->followRedirects();
         $url = 'http://study-on.local:81/course/';
         $crawler = $client->request('GET', $url);
-
+        $this->assertResponseOk();
         $link = $crawler->selectLink('Создать курс')->link();
         $crawler = $client->click($link);
-
+        $this->assertResponseOk();
+        $em = $this->getEntityManager();
+        $coursesCountBefore = count($em->getRepository(Course::class)->findAll());
         $form = $crawler->filter('form')->form();
 
         $form->setValues(array(
             "course[name]" => "Nam",
             "course[description]"  => "test",
-            "course[code]" => "22",
+            "course[code]" => "2",
         ));
 
         $crawler = $client->submit($form);
@@ -84,7 +86,7 @@ class CourseTest extends AbstractTest
         $errorMassageExpect = [
             'name' => 'Имя должно быть больше 4 символов',
             'description' => 'Контент должен быть больше 10 символов',
-            'code' => 'Код должен быть больше 3 символов'
+            'code' => 'Код должен быть больше 2 символов',
         ];
 
         $errorMassageActual = [
@@ -93,6 +95,21 @@ class CourseTest extends AbstractTest
             'code' => $crawler->filter('li')->eq(2)->text(),
         ];
         $this->assertError($errorMassageExpect, $errorMassageActual);
+
+        $form->setValues(array(
+            "course[code]" => "111",
+        ));
+        $crawler = $client->submit($form);
+        $errorMassageExpect = [
+            'code' => 'Курс с таким кодом уже существует',
+        ];
+
+        $errorMassageActual = [
+            'code' => $crawler->filter('li')->eq(2)->text(),
+        ];
+        $this->assertError($errorMassageExpect, $errorMassageActual);
+        $coursesCountAfter = count($em->getRepository(Course::class)->findAll());
+        $this->assertEquals($coursesCountBefore, $coursesCountAfter);
     }
 
     public function testFormNewOk(): void
@@ -210,7 +227,7 @@ class CourseTest extends AbstractTest
         $errorMassageExpect = [
             'name' => 'Имя должно быть больше 4 символов',
             'description' => 'Контент должен быть больше 10 символов',
-            'code' => 'Код должен быть больше 3 символов'
+            'code' => 'Код должен быть больше 2 символов'
         ];
 
         $errorMassageActual = [
@@ -219,6 +236,20 @@ class CourseTest extends AbstractTest
             'code' => $crawler->filter('li')->eq(2)->text(),
         ];
         $this->assertError($errorMassageExpect, $errorMassageActual);
+
+        $form->setValues(array(
+            "course[code]" => "222",
+        ));
+        $crawler = $client->submit($form);
+        $errorMassageExpect = [
+            'code' => 'Курс с таким кодом уже существует',
+        ];
+
+        $errorMassageActual = [
+            'code' => $crawler->filter('li')->eq(2)->text(),
+        ];
+        $this->assertError($errorMassageExpect, $errorMassageActual);
+
         $course = $em->getRepository(Course::class)->find($id);
         $this->assertNotSame("N", $course->getName());
         $this->assertNotSame("n", $course->getDescription());
