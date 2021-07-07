@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
-use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Loader;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Symfony\Bundle\FrameworkBundle\Client;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DomCrawler\Crawler;
@@ -16,7 +14,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class AbstractTest extends WebTestCase
 {
-    /** @var Client */
     protected static $client;
 
     protected static function getClient($reinitialize = false, array $options = [], array $server = [])
