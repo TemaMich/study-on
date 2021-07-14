@@ -61,7 +61,7 @@ class LessonController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="lesson_edit", methods={"GET","POST"})
+     * @Route("/edit/{id}", name="lesson_edit", methods={"GET","POST"})
      */
     public function edit(Request $request, Lesson $lesson): Response
     {
@@ -81,7 +81,7 @@ class LessonController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="lesson_delete", methods={"POST"})
+     * @Route("/delete/{id}", name="lesson_delete", methods={"POST"})
      */
     public function delete(Request $request, Lesson $lesson): Response
     {

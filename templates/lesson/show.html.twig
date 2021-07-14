@@ -7,11 +7,11 @@
     <div class="border p-3 fs-5 rounded bg-light" >
         <p>{{ lesson.content }}</p>
     </div>
-
+    {% if is_granted('ROLE_SUPER_ADMIN') %}
     <div class="flex-row d-flex mt-3">
         {{ include('lesson/_delete_form.html.twig') }}
         <a class="btn btn-outline-primary ms-2" href="{{ path('lesson_edit', {'id' : lesson.id}) }}">Edit</a>
     </div>
-
+    {% endif %}
 </main>
 {% endblock %}

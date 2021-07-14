@@ -16,7 +16,8 @@
                 </div>
             {% endfor %}
         </div>
-
+        {% if is_granted('ROLE_SUPER_ADMIN') %}
         <a href="{{ path('course_new') }}" class="btn btn-outline-primary">Создать курс</a>
+        {% endif %}
     </main>
 {% endblock %}
