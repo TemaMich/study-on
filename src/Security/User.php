@@ -13,6 +13,8 @@ class User implements UserInterface
 
     private $apiToken;
 
+    private $refreshToken;
+
     public function getEmail(): ?string
     {
         return $this->email;
@@ -37,6 +39,16 @@ class User implements UserInterface
         return $this;
     }
 
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(string $refreshToken)
+    {
+        $this->refreshToken = $refreshToken;
+    }
+
     /**
      * A visual identifier that represents this user.
      *
@@ -44,7 +56,7 @@ class User implements UserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string) $this->refreshToken;
     }
 
     /**

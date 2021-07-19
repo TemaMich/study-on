@@ -2,8 +2,12 @@
 
 namespace App\Security;
 
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
+use App\Security\User;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use Symfony\Component\Security\Http\EventListener\UserProviderListener;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -45,21 +49,53 @@ class BillingAuthenticator extends AbstractLoginFormAuthenticator
             'email' => $email,
             'password' => $password,
         ];
-        $checkUser = function ($credentials, $user) {
-            $user = $this->billingClient->login($credentials, $user);
-            if($user->getApiToken() !== null){
+
+        $identifier = json_encode($credentials);
+
+        $checkUser = function ($credentials, $user){
+            if($user->getEmail() === $credentials){
                 return true;
             }
             return false;
         };
-        return new Passport(
-            new UserBadge($email),
-            new CustomCredentials($checkUser, $credentials),
+
+        $loadUser = function ($identifier) {
+            $credentials = json_decode($identifier, true);
+            return $this->billingClient->load($credentials);
+        };
+
+
+        $passport = new Passport(
+            new UserBadge($identifier, $loadUser),
+            new CustomCredentials($checkUser, $credentials['email']),
             [
                 new CsrfTokenBadge('authenticate', $request->get('_csrf_token')),
                 new RememberMeBadge(),
             ]
         );
+
+
+        /*
+        $passport = new SelfValidatingPassport(
+            new UserBadge($identifier, $loadUser),
+            [
+                new CsrfTokenBadge('authenticate', $request->get('_csrf_token')),
+            ]
+        );
+        */
+
+
+
+        if ($passport->getUser() == null) {
+            throw new CustomUserMessageAuthenticationException('Сервис временно недопступен, попробуйте авторизироваться позже.');
+        }
+
+        if (is_array($passport->getUser()) && in_array('Invalid credentials.', $passport->getUser())) {
+            throw new CustomUserMessageAuthenticationException("Неверный логин или пароль");
+        }
+
+
+        return $passport;
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response

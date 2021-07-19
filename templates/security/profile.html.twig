@@ -3,7 +3,14 @@
 {% block title %}Log in!{% endblock %}
 
 {% block body %}
+    <h2>Email</h2>
     {{ user.email }}
-    {{ user.roles[0] }}
+    <h2>Roles</h2>
+    {{ dump(user.roles) }}
+    <h2>Balance</h2>
     {{ balance }}
+    <h2>Token</h2>
+    {{ user.apiToken }}
+    <h2>Refresh Token</h2>
+    {{ user.refreshToken }}
 {% endblock %}

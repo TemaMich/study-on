@@ -16,13 +16,14 @@ class CourseTest extends AbstractTest
     public function testCountGet(): void
     {
         $client = AbstractTest::getClient();
-
-        $client->request('GET', 'http://study-on.local:81/course/');
-
-        $em = $this->getEntityManager();
+        //$client->followRedirects();
+        $this->doAuth($client, "user@user.com", "pass_123456");
+        $client->followRedirect();
+        $client->request('GET', '/course/');
+        $em = AbstractTest::getEntityManager();
         $courses = $em->getRepository(Course::class)->findAll();
-
-        $this->assertEquals(3, count($courses));
+        $countCourse = count($courses);
+        $this->assertEquals(3, $countCourse);
 
         $this->assertResponseOk();
     }
@@ -30,8 +31,9 @@ class CourseTest extends AbstractTest
     public function testNewGet(): void
     {
         $client = AbstractTest::getClient();
-
-        $client->request('GET', 'http://study-on.local:81/course/new');
+        $this->doAuth($client, "admin@admin.com", "pass_123456");
+        $client->followRedirect();
+        $client->request('GET', '/course/new');
 
         $this->assertResponseOk();
     }
@@ -39,13 +41,14 @@ class CourseTest extends AbstractTest
     public function testEditGet(): void
     {
         $client = AbstractTest::getClient();
-
+        $this->doAuth($client, "admin@admin.com", "pass_123456");
+        $client->followRedirect();
         $em = $this->getEntityManager();
         $courses = $em->getRepository(Course::class)->findAll();
 
         foreach ($courses as $course) {
             $idCourse = $course->getID();
-            $client->request('GET', 'http://study-on.local:81/course/' . $idCourse . '/edit');
+            $client->request('GET', '/course/edit/' . $idCourse);
             $this->assertResponseOk();
         }
     }
@@ -53,13 +56,14 @@ class CourseTest extends AbstractTest
     public function testShowGet(): void
     {
         $client = AbstractTest::getClient();
-
+        $this->doAuth($client, "user@user.com", "pass_123456");
+        $client->followRedirect();
         $em = $this->getEntityManager();
         $courses = $em->getRepository(Course::class)->findAll();
 
         foreach ($courses as $course) {
             $idCourse = $course->getID();
-            $client->request('GET', 'http://study-on.local:81/course/' . $idCourse);
+            $client->request('GET', '/course/' . $idCourse);
 
             $lessons = $em->getRepository(Lesson::class)->findBy(['course' => $idCourse]);
 
@@ -71,7 +75,7 @@ class CourseTest extends AbstractTest
     public function testNotFound(): void
     {
         $client = AbstractTest::getClient();
-        $client->request('GET', "http://study-on.local:81/coursexdfh/");
+        $client->request('GET', "/notfound/");
 
         $this->assertResponseNotFound();
 
@@ -80,8 +84,9 @@ class CourseTest extends AbstractTest
     public function testFormNewError(): void
     {
         $client = AbstractTest::getClient();
-
-        $url = 'http://study-on.local:81/course/';
+        $this->doAuth($client, "admin@admin.com", "pass_123456");
+        $client->followRedirect();
+        $url = '/course/';
         $crawler = $client->request('GET', $url);
         $this->assertResponseOk();
 
@@ -108,9 +113,9 @@ class CourseTest extends AbstractTest
         ];
 
         $errorMassageActual = [
-            'name' => $crawler->filter('li')->eq(0)->text(),
-            'description' => $crawler->filter('li')->eq(1)->text(),
-            'code' => $crawler->filter('li')->eq(2)->text(),
+            'name' => $crawler->filter('li')->eq(1)->text(),
+            'description' => $crawler->filter('li')->eq(2)->text(),
+            'code' => $crawler->filter('li')->eq(3)->text(),
         ];
 
         $this->assertError($errorMassageExpect, $errorMassageActual);
@@ -125,7 +130,7 @@ class CourseTest extends AbstractTest
         ];
 
         $errorMassageActual = [
-            'code' => $crawler->filter('li')->eq(2)->text(),
+            'code' => $crawler->filter('li')->eq(3)->text(),
         ];
 
         $this->assertError($errorMassageExpect, $errorMassageActual);
@@ -137,10 +142,13 @@ class CourseTest extends AbstractTest
     public function testFormNewOk(): void
     {
         $client = AbstractTest::getClient();
-
-        $url = 'http://study-on.local:81/course/';
+        $this->doAuth($client, "admin@admin.com", "pass_123456");
+        $client->followRedirect();
+        $url = '/course/';
         $crawler = $client->request('GET', $url);
         $this->assertResponseOk();
+
+        $urlExpected = $crawler->getUri();
 
         $link = $crawler->selectLink('Создать курс')->link();
         $crawler = $client->click($link);
@@ -160,7 +168,7 @@ class CourseTest extends AbstractTest
         $this->assertResponseRedirect();
 
         $crawler = $client->followRedirect();
-        $this->assertSame('http://study-on.local:81/course/', $crawler->getUri());
+        $this->assertSame($urlExpected, $crawler->getUri());
 
         $coursesCountAfter = count($em->getRepository(Course::class)->findAll());
         $this->assertEquals($coursesCountBefore + 1, $coursesCountAfter);
@@ -169,11 +177,12 @@ class CourseTest extends AbstractTest
     public function testCourseDelete(): void
     {
         $client = AbstractTest::getClient();
-
-        $url = 'http://study-on.local:81/course/';
+        $this->doAuth($client, "admin@admin.com", "pass_123456");
+        $client->followRedirect();
+        $url = '/course/';
         $crawler = $client->request('GET', $url);
         $this->assertResponseOk();
-
+        $urlExpected = $crawler->getUri();
         $link = $crawler->selectLink('Учить')->link();
         $crawler = $client->click($link);
         $this->assertResponseOk();
@@ -186,7 +195,7 @@ class CourseTest extends AbstractTest
         $this->assertResponseRedirect();
         $crawler = $client->followRedirect();
 
-        $this->assertSame('http://study-on.local:81/course/', $crawler->getUri());
+        $this->assertSame($urlExpected, $crawler->getUri());
 
         $coursesCountAfter = count($em->getRepository(Course::class)->findAll());
         $this->assertEquals($coursesCountBefore - 1, $coursesCountAfter);
@@ -195,18 +204,18 @@ class CourseTest extends AbstractTest
     public function testFormEditOk(): void
     {
         $client = AbstractTest::getClient();
-
-        $url = 'http://study-on.local:81/course/';
+        $this->doAuth($client, "admin@admin.com", "pass_123456");
+        $client->followRedirect();
+        $url = '/course/';
         $crawler = $client->request('GET', $url);
         $this->assertResponseOk();
-
         $link = $crawler->selectLink('Учить')->link();
         $crawler = $client->click($link);
         $url = $crawler->getUri();
         $segments = explode('/', $url);
         $idCourse = $segments[4];
         $this->assertResponseOk();
-
+        $urlExpected = $crawler->getUri();
         $link = $crawler->selectLink('Edit')->link();
         $crawler = $client->click($link);
         $this->assertResponseOk();
@@ -223,7 +232,7 @@ class CourseTest extends AbstractTest
         $this->assertResponseRedirect();
         $crawler = $client->followRedirect();
 
-        $this->assertSame('http://study-on.local:81/course/' . $idCourse, $crawler->getUri());
+        $this->assertSame($urlExpected, $crawler->getUri());
 
         $em = $this->getEntityManager();
         $course = $em->getRepository(Course::class)->find($idCourse);
@@ -236,8 +245,9 @@ class CourseTest extends AbstractTest
     public function testFormEditError(): void
     {
         $client = AbstractTest::getClient();
-
-        $url = 'http://study-on.local:81/course/';
+        $this->doAuth($client, "admin@admin.com", "pass_123456");
+        $client->followRedirect();
+        $url = '/course/';
         $crawler = $client->request('GET', $url);
         $this->assertResponseOk();
 
@@ -271,9 +281,9 @@ class CourseTest extends AbstractTest
         ];
 
         $errorMassageActual = [
-            'name' => $crawler->filter('li')->eq(0)->text(),
-            'description' => $crawler->filter('li')->eq(1)->text(),
-            'code' => $crawler->filter('li')->eq(2)->text(),
+            'name' => $crawler->filter('li')->eq(1)->text(),
+            'description' => $crawler->filter('li')->eq(2)->text(),
+            'code' => $crawler->filter('li')->eq(3)->text(),
         ];
         $this->assertError($errorMassageExpect, $errorMassageActual);
 
@@ -287,11 +297,18 @@ class CourseTest extends AbstractTest
         ];
 
         $errorMassageActual = [
-            'code' => $crawler->filter('li')->eq(2)->text(),
+            'code' => $crawler->filter('li')->eq(3)->text(),
         ];
         $this->assertError($errorMassageExpect, $errorMassageActual);
 
+        $client->request('GET', $url);
+        $this->assertResponseOk();
+
+
         $course = $em->getRepository(Course::class)->find($idCourse);
+
+
+
 
         $this->assertNotSame("N", $course->getName());
         $this->assertNotSame("n", $course->getDescription());

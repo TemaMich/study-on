@@ -3,9 +3,9 @@
 {% block title %}Register{% endblock %}
 
 {% block body %}
-    {% for flashError in app.flashes('verify_email_error') %}
-        <div class="alert alert-danger" role="alert">{{ flashError }}</div>
-    {% endfor %}
+     {% if error is not null %}
+         <div class="alert alert-danger" role="alert">{{ error }}</div>
+     {% endif %}
 
     <h1>Register</h1>
 

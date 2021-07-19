@@ -20,12 +20,41 @@ abstract class AbstractTest extends WebTestCase
     {
         if (!static::$client || $reinitialize) {
             static::$client = static::createClient($options, $server);
+
+            $client = static::$client;
+
+            $client->disableReboot();
+
+
+            $client->getContainer()->set(
+                'App\Service\BillingClient',
+                new BillingClientMock()
+            );
         }
 
         // core is loaded (for tests without calling of getClient(true))
         static::$client->getKernel()->boot();
 
+
         return static::$client;
+    }
+
+    public function doAuth(& $client, string $email, string $pass)
+    {
+
+        $crawler = $client->request('GET', '/login');
+
+        $form = $crawler->filter('form')->form();
+
+
+        $form->setValues(array(
+            "email" => $email,
+            "password" => $pass,
+        ));
+
+        $crawler = $client->submit($form);
+
+        return $crawler;
     }
 
     protected function setUp(): void

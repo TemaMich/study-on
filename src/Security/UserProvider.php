@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Service\BillingClient;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
@@ -10,6 +11,12 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
 {
+    private BillingClient $billingClient;
+
+    public function __construct(BillingClient $billingClient)
+    {
+        $this->billingClient = $billingClient;
+    }
     /**
      * Symfony calls this method if you use features like switch_user
      * or remember_me.
@@ -22,8 +29,10 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
     public function loadUserByIdentifier($identifier): UserInterface
     {
         $user = new User();
-        $user->setEmail($identifier);
-        return $user;
+        $jwtToken = $this->billingClient->refreshToken($identifier);
+        $user->setApiToken($jwtToken['token']);
+        $user->setRefreshToken($jwtToken['refresh_token']);
+        return $this->billingClient->getUserByToken($user);
     }
 
     /**
@@ -52,10 +61,20 @@ class UserProvider implements UserProviderInterface, PasswordUpgraderInterface
         if (!$user instanceof User) {
             throw new UnsupportedUserException(sprintf('Invalid user class "%s".', get_class($user)));
         }
+
+        $jwtPayload = $this->billingClient->getPayload($user->getApiToken());
+
+        $expDateTime = date('Y-m-d H:i:s', $jwtPayload->exp);
+        $currentDateTime = date('Y-m-d H:i:s', time());
+
+        if ($expDateTime < $currentDateTime) {
+            $user->setApiToken($this->billingClient->refreshToken($user->getRefreshToken())['token']);
+            $user->setRefreshToken($this->billingClient->refreshToken($user->getRefreshToken())['refresh_token']);
+        }
+
         return $user;
         // Return a User object after making sure its data is "fresh".
         // Or throw a UsernameNotFoundException if the user no longer exists.
-        throw new \Exception('TODO: fill in refreshUser() inside '.__FILE__);
     }
 
     /**

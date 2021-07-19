@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Guard\GuardAuthenticatorHandler;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -26,10 +27,10 @@ class SecurityController extends AbstractController
     /**
      * @Route("/login", name="app_login")
      */
-    public function login(AuthenticationUtils $authenticationUtils): Response
+    public function login(AuthenticationUtils $authenticationUtils, AuthorizationCheckerInterface $authChecker): Response
     {
          if ($this->getUser()) {
-             return $this->redirectToRoute('target_path');
+             return $this->redirectToRoute('course_index');
          }
 
         // get the login error if there is one
@@ -63,8 +64,10 @@ class SecurityController extends AbstractController
                              BillingAuthenticator $formAuthenticator): Response
     {
         if($this->getUser()){
-            return $this->redirectToRoute('course_index');
+            return $this->redirectToRoute('app_profile');
         }
+
+        $error = null;
 
         $form = $this->createForm(RegistrationType::class, null);
 
@@ -79,16 +82,20 @@ class SecurityController extends AbstractController
                 'email' => $email,
                 'password' => $password,
             ];
-            $user = $this->billingClient->register($credentials);
+            $response = $this->billingClient->register($credentials);
 
-            return $authenticator->authenticateUser(
-                $user,
-                $formAuthenticator,
-                $request);
+            if ($response instanceof User) {
+                return $authenticator->authenticateUser(
+                    $response,
+                    $formAuthenticator,
+                    $request);
+            }
+                $error = $response;
         }
 
         return $this->render('registration/index.html.twig', [
             'registrationForm' => $form->createView(),
+            'error' => $error,
         ]);
     }
 
