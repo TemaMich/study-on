@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Course;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -30,7 +31,7 @@ class CourseType extends AbstractType
                     new Length([
                         'min' => 4,
                         'minMessage' => 'Имя должно быть больше {{ limit }} символов',
-                        'max' => 10,
+                        'max' => 255,
                     ])
                 ],
             ])
@@ -43,13 +44,19 @@ class CourseType extends AbstractType
                     ])
                 ],
             ])
+            ->add('price', TextType::class, [
+                'label' => "Цена",
+            ])
+            ->add('type', IntegerType::class, [
+                'label' => "Тип",
+            ])
         ;
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => Course::class,
+
         ]);
     }
 }

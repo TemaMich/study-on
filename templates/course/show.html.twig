@@ -2,15 +2,33 @@
 
 {% block body %}
     <main class="container mt-5">
-
+        <div class="d-flex">
         <h1>{{ course.name }}</h1>
+        {% if pay %}
+            <p class="ms-auto">Курс уже куплен</p>
+        {% elseif disable %}
+            <form class="align-self-start" method="post" action="{{ path('course_pay', {'id': course.id}) }}" onsubmit="return confirm('Вы уверены, что хотите купить курс?');">
+                <button class="btn btn-outline-success ms-auto align-self-start disabled">Buy course</button>
+            </form>
+            {# <a class="btn btn-outline-success ms-auto align-self-start disabled" href="{{ path('course_pay', {'id' : course.id}) }}">Buy course</a> #}
+            {% else %}
+                <form class="align-self-start" method="post" action="{{ path('course_pay', {'id': course.id}) }}" onsubmit="return confirm('Вы уверены, что хотите купить курс?');">
+                    <button class="btn btn-outline-success ms-auto align-self-start">Buy course</button>
+                </form>
+                {# <a class="btn btn-outline-success ms-auto align-self-start" href="{{ path('course_pay', {'id' : course.id}) }}">Buy course</a> #}
+        {% endif %}
+        </div>
         <p class="fs-5">{{ course.description }}</p>
         <h2>Уроки</h2>
         <div class="list-group mb-3">
             {% for lesson in course.lessons %}
-
-                <a href="{{ path('lesson_show', {'id': lesson.id}) }}"
-                   class="list-group-item list-group-item-action"> {{ lesson.name }} </a>
+                {% if pay %}
+                    <a href="{{ path('lesson_show', {'id': lesson.id}) }}"
+                        class="list-group-item list-group-item-action"> {{ lesson.name }} </a>
+                {% else %}
+                    <a href="{{ path('lesson_show', {'id': lesson.id}) }}"
+                       class="list-group-item list-group-item-action disabled"> {{ lesson.name }} </a>
+                {% endif %}
             {% else %}
                 <p>Здесь пока нет уроков</p>
             {% endfor %}

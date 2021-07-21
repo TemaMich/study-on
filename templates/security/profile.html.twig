@@ -9,8 +9,19 @@
     {{ dump(user.roles) }}
     <h2>Balance</h2>
     {{ balance }}
-    <h2>Token</h2>
-    {{ user.apiToken }}
-    <h2>Refresh Token</h2>
-    {{ user.refreshToken }}
+    <table border="1">
+        <caption>Транзакции</caption>
+        <tr>
+            <th>Деньги</th>
+            <th>Время</th>
+            <th>Тип</th>
+        </tr>
+        {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction['amount'] }}</td>
+                <td>{{ transaction['created_at']['date']|format_datetime('short', 'short') }}</td>
+                <td>{{ transaction['type'] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}
